@@ -1,110 +1,105 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 
 public class MatcherWindow {
+
+    String mainAddress = CustomerDelivery.fullAddress;
     JFrame frame = new JFrame();
-    JLabel label = new JLabel("Enter Main Address: ");
-    JLabel label2 = new JLabel("Enter Text to be Matched: ");
-    JTextField textField = new JTextField();
-    JTextField textField2 = new JTextField();
+    JLabel mainAddressLabel = new JLabel("Enter New Main Address:");
+    JLabel currentAddressLabel = new JLabel("Currently Entered Address: " + CustomerDelivery.fullAddress);
+    JLabel textToMatchLabel = new JLabel("Enter Text to be Matched:");
+    JTextField mainAddressField = new JTextField();
+    JTextField textToMatchField = new JTextField();
+    JButton enterButton = new JButton("Enter");
     JButton matchButton = new JButton("Match");
-    JTextArea console = new JTextArea();
-    JScrollPane scrollPane = new JScrollPane(console);
+    JLabel occurrencesLabel = new JLabel("Occurrences: ");
+    JLabel positionsLabel = new JLabel("Positions: ");
+    JButton backButton = new JButton("Back to First Page");
 
-    String mainAddress;
-    String textToMatch;
+    String currentAddress;
 
-    MatcherWindow() {
-        int frameWidth = 420;
-        int frameHeight = 420;
-        int labelWidth = 150;
-        int labelHeight = 40;
-        int textFieldWidth = 200;
-        int textFieldHeight = 30;
-        int buttonWidth = 100;
-        int buttonHeight = 30;
-        int consoleWidth = 380;
-        int consoleHeight = 100;
-
+    MatcherWindow(String fullAddress) {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(frameWidth, frameHeight);
-        frame.setLayout(null);
-        frame.setResizable(true);
-        frame.addComponentListener(new ComponentAdapter() {
+        frame.setLayout(new BorderLayout());
+        frame.setSize(500, 260);
+        frame.setLocationRelativeTo(null);
+
+        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        inputPanel.add(mainAddressLabel);
+        inputPanel.add(mainAddressField);
+        inputPanel.add(currentAddressLabel);
+        inputPanel.add(new JLabel(""));
+        inputPanel.add(textToMatchLabel);
+        inputPanel.add(textToMatchField);
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1));
+        JPanel buttonPanel1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel1.add(enterButton);
+        buttonPanel1.add(matchButton);
+        buttonPanel.add(buttonPanel1);
+        JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel2.add(backButton);
+        buttonPanel.add(buttonPanel2);
+
+        JPanel resultPanel = new JPanel(new GridLayout(3, 1));
+        resultPanel.add(occurrencesLabel);
+        resultPanel.add(positionsLabel);
+        resultPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        frame.add(inputPanel, BorderLayout.NORTH);
+        frame.add(resultPanel, BorderLayout.CENTER);
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        enterButton.addActionListener(new ActionListener() {
             @Override
-            public void componentResized(ComponentEvent e) {
-                super.componentResized(e);
-                repositionComponents();
+            public void actionPerformed(ActionEvent e) {
+                mainAddress = mainAddressField.getText();
+                currentAddress = "Currently Entered Address: " + mainAddress;
+                currentAddressLabel.setText(mainAddress);
             }
         });
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-
-        // Set initial positions
-        label.setBounds(20, (frameHeight - labelHeight) / 2 - 60, labelWidth, labelHeight);
-        textField.setBounds(labelWidth + 30, (frameHeight - textFieldHeight) / 2 - 60, textFieldWidth, textFieldHeight);
-        label2.setBounds(20, (frameHeight - labelHeight) / 2 - 20, labelWidth, labelHeight);
-        textField2.setBounds(labelWidth + 30, (frameHeight - textFieldHeight) / 2 - 20, textFieldWidth, textFieldHeight);
-        matchButton.setBounds((frameWidth - buttonWidth) / 2, (frameHeight - buttonHeight) / 2 + 20, buttonWidth, buttonHeight);
-        scrollPane.setBounds((frameWidth - consoleWidth) / 2, (frameHeight - consoleHeight) / 2 + 60, consoleWidth, consoleHeight);
-
-        frame.add(label);
-        frame.add(label2);
-        frame.add(textField);
-        frame.add(textField2);
-        frame.add(matchButton);
-        frame.add(scrollPane);
 
         matchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mainAddress = textField.getText();
-                textToMatch = textField2.getText();
+                String textToMatch = textToMatchField.getText();
                 matcher(mainAddress, textToMatch);
             }
         });
+
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LaunchPage launchPage = new LaunchPage();
+                frame.dispose();
+            }
+        });
+
+        frame.setVisible(true);
     }
 
-    private void repositionComponents() {
-        int frameWidth = frame.getWidth();
-        int frameHeight = frame.getHeight();
-        int labelWidth = 150;
-        int labelHeight = 40;
-        int textFieldWidth = 200;
-        int textFieldHeight = 30;
-        int buttonWidth = 100;
-        int buttonHeight = 30;
-        int consoleWidth = 380;
-        int consoleHeight = 100;
-        int verticalOffset = 30;
-
-        label.setBounds((frameWidth - labelWidth - textFieldWidth - 30) / 2, (frameHeight - labelHeight) / 2 - 60, labelWidth, labelHeight);
-        textField.setBounds(label.getX() + labelWidth + 30, (frameHeight - textFieldHeight) / 2 - 60, textFieldWidth, textFieldHeight);
-        label2.setBounds((frameWidth - labelWidth - textFieldWidth - 30) / 2, (frameHeight - labelHeight) / 2 - 20, labelWidth, labelHeight);
-        textField2.setBounds(label2.getX() + labelWidth + 30, (frameHeight - textFieldHeight) / 2 - 20, textFieldWidth, textFieldHeight);
-        matchButton.setBounds((frameWidth - buttonWidth) / 2, (frameHeight - buttonHeight) / 2 + 20, buttonWidth, buttonHeight);
-        scrollPane.setBounds((frameWidth - consoleWidth) / 2, (frameHeight - consoleHeight) / 2 + 60 + verticalOffset, consoleWidth, consoleHeight);
-    }
-
-    public void matcher(String MainAddy, String Addy){
+    public void matcher(String MainAddy, String textToMatch){
         int occ = 0;
         String MainAddyUpper = MainAddy.toUpperCase();
         String[] MainAddyArray = MainAddyUpper.split("\\W+");
 
-        Addy = Addy.toUpperCase();
+        textToMatch = textToMatch.toUpperCase();
 
-        StringBuilder occurencesStringBuilder = new StringBuilder("Number Of Occurrences: ");
-        StringBuilder positionsStringBuilder = new StringBuilder("Words Positions: ");
-
+        StringBuilder positionsStringBuilder = new StringBuilder();
         for (int i = 0; i < MainAddyArray.length; i++) {
-            if (Addy.equals(MainAddyArray[i])) {
+            if (textToMatch.equals(MainAddyArray[i])) {
                 occ++;
                 positionsStringBuilder.append(i + 1).append(" ");
             }
         }
-        occurencesStringBuilder.append(occ);
 
-        console.append(occurencesStringBuilder.toString() + "\n");
-        console.append(positionsStringBuilder.toString() + "\n");
+        occurrencesLabel.setText("Occurrences: " + occ);
+        positionsLabel.setText("Positions: " + positionsStringBuilder.toString());
     }
+
+    //public static void main(String[] args) {
+        //new MatcherWindow();
+    //}
 }

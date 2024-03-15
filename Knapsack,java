@@ -1,0 +1,135 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+public class Knapsack {
+    JFrame frame = new JFrame();
+    private AllCombinationWindow previousWindow;
+
+    JLabel label = new JLabel("Enter the gross weight of the motor vehicle (1-15 kilos): ");
+    JTextField textField = new JTextField();
+    JButton enterButton = new JButton("Enter");
+
+    JLabel bestCombinationLabel = new JLabel();
+
+    JButton backButton = new JButton("Back to First Page");
+    static Double weightGross;
+
+    public static BehindKnapsack.Product[] products = {
+            new BehindKnapsack.Product("Canned Goods", 5, 450),
+            new BehindKnapsack.Product("Cooking Oil", 3, 725),
+            new BehindKnapsack.Product("Noodles", 2.5, 375),
+            new BehindKnapsack.Product("Soap", 7, 500)
+    };
+
+    Knapsack() {
+        int frameWidth = 420;
+        int frameHeight = 420;
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int frameX = (screenSize.width - frameWidth) / 2;
+        int frameY = (screenSize.height - frameHeight) / 2;
+
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        textField.setPreferredSize(new Dimension(300, 30));
+
+        enterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String text = textField.getText();
+                try {
+                    weightGross = Double.parseDouble(text);
+                    if (weightGross <= 15) {
+
+                        new SortingAlgos(weightGross);
+
+                        List<List<BehindKnapsack.Product>> subsets = BehindKnapsack.KnapsackAlgorithm.knapsack(products, weightGross);
+
+                        List<BehindKnapsack.Product> highestCombination = findHighestCombination(subsets);
+
+                        updateBestCombinationLabel(highestCombination);
+
+                        if (previousWindow != null) {
+                            previousWindow.closeWindow();
+                        }
+
+                        previousWindow = new AllCombinationWindow(subsets, frame);
+                    }
+                } catch (NumberFormatException ex) {
+                    System.err.println("Input is not a valid number.");
+                }
+            }
+        });
+
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LaunchPage launchPage = new LaunchPage();
+                frame.dispose();
+            }
+        });
+
+        frame.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 20, 20, 20);
+        frame.add(label, gbc);
+
+        gbc.gridy++;
+        frame.add(textField, gbc);
+
+        gbc.gridy++;
+        frame.add(enterButton, gbc);
+
+        gbc.gridy++;
+        frame.add(bestCombinationLabel, gbc);
+
+        gbc.gridy++;
+        frame.add(backButton, gbc);
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(frameWidth, frameHeight);
+        frame.setLocation(frameX, frameY);
+        frame.setVisible(true);
+    }
+
+    private List<BehindKnapsack.Product> findHighestCombination(List<List<BehindKnapsack.Product>> subsets) {
+        int maxTotalAmount = 0;
+        List<BehindKnapsack.Product> bestCombination = null;
+        for (List<BehindKnapsack.Product> subset : subsets) {
+            int totalAmount = subset.stream().mapToInt(BehindKnapsack.Product::getAmount).sum();
+            if (totalAmount > maxTotalAmount) {
+                maxTotalAmount = totalAmount;
+                bestCombination = subset;
+            }
+        }
+        return bestCombination;
+    }
+
+    private void updateBestCombinationLabel(List<BehindKnapsack.Product> bestCombination) {
+        if (bestCombination != null) {
+            StringBuilder productsString = new StringBuilder("Products: ");
+            for (BehindKnapsack.Product product : bestCombination) {
+                productsString.append(product.getName()).append(", ");
+            }
+            if (productsString.length() > 2) {
+                productsString.setLength(productsString.length() - 2);
+            }
+            double totalWeight = bestCombination.stream().mapToDouble(BehindKnapsack.Product::getWeight).sum();
+            int totalAmount = bestCombination.stream().mapToInt(BehindKnapsack.Product::getAmount).sum();
+            String labelText = productsString.toString() + "<br>Total Weight: " + totalWeight + "<br>Total Amount: " + totalAmount;
+            bestCombinationLabel.setText("<html>" + labelText + "</html>");
+        } else {
+            bestCombinationLabel.setText("No combination found");
+        }
+    }
+
+    public static void main(String[] args) {
+        new Knapsack();
+    }
+}
